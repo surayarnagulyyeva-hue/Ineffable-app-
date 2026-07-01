@@ -1,4 +1,4 @@
-const CACHE_NAME = "ineffable-v1";
+const CACHE_NAME = "ineffable-v2";
 const ASSETS = [
   "./",
   "./index.html",
@@ -35,22 +35,21 @@ self.addEventListener("fetch", function(event){
   if(event.request.method !== "GET") return;
 
   event.respondWith(
-    caches.match(event.request).then(function(cached){
-      if(cached) return cached;
-
-      return fetch(event.request)
-        .then(function(response){
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(function(cache){
-            cache.put(event.request, copy);
-          });
-          return response;
-        })
-        .catch(function(){
+    fetch(event.request)
+      .then(function(response){
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then(function(cache){
+          cache.put(event.request, copy);
+        });
+        return response;
+      })
+      .catch(function(){
+        return caches.match(event.request).then(function(cached){
+          if(cached) return cached;
           if(event.request.mode === "navigate"){
             return caches.match("./index.html");
           }
         });
-    })
+      })
   );
 });
